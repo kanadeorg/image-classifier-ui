@@ -14,7 +14,6 @@ import MoreIcon from '@mui/icons-material/MoreVert';
 function App() {
   const [imageName, setImageName] = useState("");
   const [apiUrl, setApiUrl] = useState("");
-  const [doneClassification, setDoneClassification] = useState(false);
 
   useEffect(() => {
     fetch('configs.json').then((response) => response.json())
@@ -26,13 +25,16 @@ function App() {
 
   useEffect(() => {
     console.log(apiUrl);
+    fetchNewImage()
+  }, [apiUrl])
+
+  const fetchNewImage = (callback) => {
     fetch(apiUrl + "get_image").then((response) => response.json())
     .then((json) => {
       console.log(json);
       setImageName(json.filename);
-      setDoneClassification(false);
     })
-  }, [apiUrl, doneClassification])
+  }
 
   return (
     <div className="App">
@@ -53,16 +55,30 @@ function App() {
           <Box sx={{ flexGrow: 1 }} />
           <Button
             onClick={() => {
-              fetch(`${apiUrl}set_image?img=${imageName}&class=good`, {
+              fetch(`${apiUrl}set_image?img=${imageName}&class=ok`, {
                 method: 'PUT'
               }).then((response) => {
                 console.log(response);
-                setDoneClassification(true)
+                fetchNewImage()
               })
             }}
             variant="contained"
             color="success">
-            Looks Good!
+            Ok
+          </Button>          
+          <Box sx={{ width: '10px' }} />
+          <Button
+            onClick={() => {
+              fetch(`${apiUrl}set_image?img=${imageName}&class=doubt`, {
+                method: 'PUT'
+              }).then((response) => {
+                console.log(response);
+                fetchNewImage()
+              })
+            }}
+            variant="contained"
+            color="warning">
+            Doubt
           </Button>
           <Box sx={{ width: '10px' }} />
           <Button
@@ -71,12 +87,12 @@ function App() {
                 method: 'PUT'
               }).then((response) => {
                 console.log(response);
-                setDoneClassification(true)
+                fetchNewImage()
               })
             }}
             variant="contained"
             color="error">
-            Not Good X
+            Bad
           </Button>
         </Toolbar>
       </AppBar>
