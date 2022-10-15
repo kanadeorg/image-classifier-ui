@@ -13,6 +13,8 @@
 # production
 /build
 
+/public/configs.json
+
 # misc
 .DS_Store
 .env.local
