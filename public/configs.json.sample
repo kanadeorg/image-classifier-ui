@@ -1,5 +1,6 @@
 {
     "api_server_host":"",
     "api_server_port":"8088",
-    "image_folder":""
+    "image_folder":"",
+    "translate": true
 }

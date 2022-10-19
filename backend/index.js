@@ -4,6 +4,7 @@ const app = express();
 const fs = require('fs');
 
 const randomFile = require('select-random-file');
+const { translate } = require('free-translate');
 
 const cors = require('cors');
 
@@ -53,7 +54,14 @@ app.get('/get_image', (req, res) => {
         if (fs.existsSync(`${configs.image_folder}/${txtFileName}`)) {
             description = fs.readFileSync(`${configs.image_folder}/${txtFileName}`, 'utf8')
         }
-        res.json({filename: img, description: description});
+        if (!configs.translate || !description) {
+            return res.json({filename: img, description: description});
+        }
+        return (async () => {
+            const translatedText = await translate(description.replaceAll('_', ' '), { from: 'en', to: 'zh-CN'})
+            console.log(translatedText);
+            return res.json({filename: img, description: description, translatedText: translatedText});
+        })()
     })
 })
 

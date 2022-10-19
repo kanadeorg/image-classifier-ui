@@ -72,16 +72,19 @@ function App() {
 
   const [imageName, setImageName] = useState("");
   const [description, setDescription] = useState("");
+  const [translatedText, setTranslatedText] = useState("");
   const [apiUrl, setApiUrl] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [translate, setTranslate] = useState(false);
 
   useEffect(() => {
     fetch('configs.json').then((response) => response.json())
     .then((json) => {
       console.log(json);
       setApiUrl(`http://${json.api_server_host}:${json.api_server_port}/`);
+      setTranslate(json.translate)
     })
   }, [])
 
@@ -96,6 +99,9 @@ function App() {
       console.log(json);
       setImageName(json.filename);
       setDescription(json.description);
+      if (json.translatedText) {
+        setTranslatedText(json.translatedText);
+      }
       setLoading(false);
     })
   }
@@ -179,6 +185,12 @@ function App() {
         <Typography variant="paragraph">
           { description }
         </Typography>
+        {translate ? <>
+            <Divider />
+            <Typography variant="h5">标签翻译:</Typography>
+            <Typography variant="paragraph">
+              {translatedText}
+            </Typography></> : null}
         </Box>
       </Drawer>
       <AppBar position="fixed" color="primary" sx={{ top: 'auto', bottom: 0 }} open={open}>
