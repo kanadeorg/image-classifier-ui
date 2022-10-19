@@ -20,7 +20,7 @@ const darkTheme = createTheme({
   },
 });
 
-const drawerWidth = 400;
+const drawerWidth = 200;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
@@ -131,21 +131,17 @@ function App() {
           container
           spacing={0}
           direction="column"
+          alignContent="center"
           alignItems="center"
           justifyContent="center"
           style={{ minHeight: '90vh' }}
         >
-        <Grid item xs={3} variant="outlined" elevation={3}>
-            <Box sx={{
-                width: '100%',
-              }}
-            >
-              { loading ? <CircularProgress></CircularProgress> : <img 
-                src={apiUrl+'img/'+imageName}
-                alt="new"
-                style={{ maxHeight: '70vh', objectFit: 'contain', maxWidth: '80vh'}}
-              />}
-            </Box>
+        <Grid item xs={3}>
+            { loading ? <CircularProgress></CircularProgress> : <img 
+              src={apiUrl+'img/'+imageName}
+              alt="new"
+              style={{ maxHeight: '70vh', objectFit: 'contain', maxWidth: '100%'}}
+            />}
           </Grid>
         </Grid>
       </Main>
