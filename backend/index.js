@@ -48,7 +48,12 @@ app.get('/get_image', (req, res) => {
     getRandomImage((img) => {
         if (img === undefined) return res.sendStatus(404);
         console.log(`Got image ${img}`);
-        res.json({filename: img});
+        const txtFileName = `${getFileNameWithoutExtension(img)}.txt`
+        let description = "";
+        if (fs.existsSync(`${configs.image_folder}/${txtFileName}`)) {
+            description = fs.readFileSync(`${configs.image_folder}/${txtFileName}`, 'utf8')
+        }
+        res.json({filename: img, description: description});
     })
 })
 
