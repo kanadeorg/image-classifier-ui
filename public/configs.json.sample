@@ -1,6 +1,8 @@
 {
     "api_server_host":"",
     "api_server_port":"8088",
+    "web_server_port": "3000",
     "image_folder":"",
+    "audio_foler": "",
     "translate": true
 }

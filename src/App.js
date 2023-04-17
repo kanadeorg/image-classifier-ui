@@ -13,6 +13,8 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
+import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 
 const darkTheme = createTheme({
   palette: {
@@ -66,11 +68,23 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-start',
 }));
 
+const DisplayWindow = (props) => {
+  return (
+    <>
+      { props.loading ? <CircularProgress></CircularProgress> : ( props.mode === 'photo' ? <img 
+          src={props.apiUrl+'img/'+props.imageName}
+          alt="new"
+          style={{ maxHeight: '70vh', objectFit: 'contain', maxWidth: '100%'}}
+        /> : <audio src={props.apiUrl+'audio/'+props.audioName} controls loop="true" autoplay="true"></audio>)}
+    </>
+  )
+}
 
 function App() {
   const theme = useTheme();
 
   const [imageName, setImageName] = useState("");
+  const [audioName, setAudioName] = useState("");
   const [description, setDescription] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [apiUrl, setApiUrl] = useState("");
@@ -78,31 +92,65 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [translate, setTranslate] = useState(false);
+  const [mode, setMode] = useState("photo");
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     fetch('configs.json').then((response) => response.json())
     .then((json) => {
-      console.log(json);
-      setApiUrl(`http://${json.api_server_host}:${json.api_server_port}/`);
+      // setApiUrl(`https://${json.api_server_host}:${json.web_server_port}/api/`);
+      setApiUrl(`https://playground.uotca.com/api/`);
       setTranslate(json.translate)
     })
   }, [])
 
   useEffect(() => {
-    console.log(apiUrl);
-    fetchNewImage()
-  }, [apiUrl])
+    if (mode === "photo")
+      fetchNewImage()
+    else
+      fetchNewAudio()
+  }, [apiUrl, mode])
+
+  const saveChange = (cla, name) => {
+    setLoading(true);
+    const url = mode === 'photo' ? 'set_image?img=' : 'set_audio?audio=';
+    fetch(`${apiUrl}${url}${name}&class=${cla}`, {
+      method: 'PUT'
+    }).then((response) => {
+      if (mode === 'photo')
+        fetchNewImage();
+      else
+        fetchNewAudio();
+    });
+  }
 
   const fetchNewImage = (callback) => {
     fetch(apiUrl + "get_image").then((response) => response.json())
     .then((json) => {
-      console.log(json);
       setImageName(json.filename);
       setDescription(json.description);
       if (json.translatedText) {
         setTranslatedText(json.translatedText);
       }
       setLoading(false);
+    }).catch((err) => {
+      setLoading(false);
+      setDone(true);
+    })
+  }
+
+  const fetchNewAudio = (callback) => {
+    fetch(apiUrl + "get_audio").then((response) => response.json())
+    .then((json) => {
+      setAudioName(json.filename);
+      setDescription(json.description);
+      if (json.translatedText) {
+        setTranslatedText(json.translatedText);
+      }
+      setLoading(false);
+    }).catch((err) => {
+      setLoading(false);
+      setDone(true);
     })
   }
 
@@ -114,10 +162,13 @@ function App() {
       <AppBar position="fixed" open={open} sx={{ top: 0 }}>
         <Toolbar>
           <Typography variant="h6" noWrap sx={{ flexGrow: 1 }} component="div">
-            Image Classifier UI
+            { mode === "photo" ? "Image Classifier UI" : "Audio Classifier UI"}
           </Typography>
           <IconButton sx={{ ml: 1 }} onClick={ () => { setDarkMode(!darkMode) } }color="inherit">
             {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+          <IconButton sx={{ ml: 1 }} onClick={ () => { setDone(false); setLoading(true); setMode(mode === "photo" ? "audio" : "photo") } }color="inherit">
+            {mode === "photo" ? <InsertPhotoIcon /> : <AudiotrackIcon  />}
           </IconButton>
           <IconButton
             color="inherit"
@@ -143,11 +194,11 @@ function App() {
           style={{ minHeight: '90vh' }}
         >
         <Grid item xs={3}>
-            { loading ? <CircularProgress></CircularProgress> : <img 
-              src={apiUrl+'img/'+imageName}
-              alt="new"
-              style={{ maxHeight: '70vh', objectFit: 'contain', maxWidth: '100%'}}
-            />}
+            { done ?
+              <Typography variant='h5'>谢谢，当前分类任务已完成。点击右上角按钮切换模式看看别的数据集吧。</Typography> : 
+              <DisplayWindow mode={mode} loading={loading} apiUrl={apiUrl} imageName={imageName} audioName={audioName}></DisplayWindow>
+            }
+
           </Grid>
         </Grid>
       </Main>
@@ -199,12 +250,7 @@ function App() {
             <Button
               onClick={() => {
                 setLoading(true);
-                fetch(`${apiUrl}set_image?img=${imageName}&class=ok`, {
-                  method: 'PUT'
-                }).then((response) => {
-                  console.log(response);
-                  fetchNewImage()
-                })
+                saveChange('ok', mode === "photo" ? imageName : audioName);
               }}
               style={{ width: '100px' }}
               variant="contained"
@@ -215,12 +261,7 @@ function App() {
             <Button
               onClick={() => {
                 setLoading(true);
-                fetch(`${apiUrl}set_image?img=${imageName}&class=doubt`, {
-                  method: 'PUT'
-                }).then((response) => {
-                  console.log(response);
-                  fetchNewImage()
-                })
+                saveChange('doubt', mode === "photo" ? imageName : audioName);
               }}
               style={{ width: '100px' }}
               variant="contained"
@@ -231,12 +272,7 @@ function App() {
             <Button
               onClick={() => {
                 setLoading(true);
-                fetch(`${apiUrl}set_image?img=${imageName}&class=bad`, {
-                  method: 'PUT'
-                }).then((response) => {
-                  console.log(response);
-                  fetchNewImage()
-                })
+                saveChange('bad', mode === "photo" ? imageName : audioName);
               }}
               style={{ width: '100px' }}
               variant="contained"
